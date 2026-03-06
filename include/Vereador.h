@@ -13,6 +13,7 @@ private:
 public:
     Vereador(const char *_nome);
     void votar(TipoVoto voto);
+    void limparVoto();
     TipoVoto obterVoto();
     const char *obterNome();
 };
