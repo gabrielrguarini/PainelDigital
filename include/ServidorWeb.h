@@ -4,6 +4,7 @@
 #include <Arduino.h>
 #include <WiFi.h>
 #include <ESPAsyncWebServer.h>
+#include "GerenciadorDeVotacoes.h"
 
 class ServidorWeb
 {
@@ -16,7 +17,7 @@ public:
 
     void iniciar(const char *ssid, const char *senha);
 
-    void enviarAtualizacao(int sim, int nao);
+    void enviarAtualizacao(GerenciadorDeVotacoes &ger);
 };
 
 #endif

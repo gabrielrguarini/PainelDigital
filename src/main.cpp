@@ -7,7 +7,7 @@
 
 Botao botaoSim(33);
 Botao botaoNao(32);
-Botao botaoNovaVotacao(25);
+Botao botaoNovaVotacao(12);
 
 Vereador vereador1("Gabriel");
 
@@ -26,17 +26,24 @@ void setup()
 
 void loop()
 {
+    if (botaoNovaVotacao.atualizar())
+    {
+        gerenciador.iniciarNovaVotacao();
+
+        servidor.enviarAtualizacao(gerenciador);
+
+        Serial.println("Iniciada nova votação");
+    }
+    Votacao *votacaoAtual = gerenciador.obterVotacaoAtual();
     if (botaoSim.atualizar())
     {
         TipoVoto votoAnterior = vereador1.obterVoto();
 
         vereador1.votar(SIM);
 
-        votacaoAtual.registrarVoto(votoAnterior, SIM);
+        votacaoAtual->registrarVoto(votoAnterior, SIM);
 
-        servidor.enviarAtualizacao(
-            votacaoAtual.obterTotalSim(),
-            votacaoAtual.obterTotalNao());
+        servidor.enviarAtualizacao(gerenciador);
 
         Serial.printf("%s votou SIM\n", vereador1.obterNome());
     }
@@ -47,11 +54,9 @@ void loop()
 
         vereador1.votar(NAO);
 
-        votacaoAtual.registrarVoto(votoAnterior, NAO);
+        votacaoAtual->registrarVoto(votoAnterior, NAO);
 
-        servidor.enviarAtualizacao(
-            votacaoAtual.obterTotalSim(),
-            votacaoAtual.obterTotalNao());
+        servidor.enviarAtualizacao(gerenciador);
 
         Serial.printf("%s votou NÃO\n", vereador1.obterNome());
     }

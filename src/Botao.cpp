@@ -1,6 +1,7 @@
 #include "Botao.h"
 
-Botao::Botao(int pino){
+Botao::Botao(int pino)
+{
     _pino = pino;
     _estadoAnterior = HIGH;
     _ultimoTempoDebounce = 0;
