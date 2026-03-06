@@ -16,7 +16,8 @@ struct ConfigVereador {
 // Para 11 vereadores (22 botões), você precisará de expansores (ex: 74HC165, PCF8574),
 // ou utilizar pinos como 34, 35, 36 e 39 (que OBRIGATORIAMENTE exigem resistores de pull-up físicos externos de 10k).
 ConfigVereador vereadores[] = {
-    {Vereador("Gabriel"), Botao(33), Botao(32)}
+    // Altere este nome caso você queira testar a mesa com outro!
+    {Vereador("LAIR BOIADEIRO"), Botao(33), Botao(32)}
     // Quando for utilizar os expansores I2C, você poderá adicionar os outros aqui novamente!
 };
 
@@ -34,13 +35,20 @@ void setup()
 
     botaoNovaVotacao.begin();
 
-    // Inicializa todos os botões SIM e NÃO automaticamente
+    // Cria a Votação Inicial #1 assim que o painel liga, para a tela não começar travada e sem dados
+    gerenciador.iniciarNovaVotacao();
+
+    // Inicializa todos os botões SIM e NÃO automaticamente e pré-popula a placa
+    Votacao *votacaoAtual = gerenciador.obterVotacaoAtual();
+
     for (int i = 0; i < NUM_VEREADORES; i++) {
         vereadores[i].botaoSim.begin();
         vereadores[i].botaoNao.begin();
+        votacaoAtual->registrarVoto(vereadores[i].vereador.obterNome(), NAO_VOTOU);
     }
 
-    servidor.iniciar("Camara Municipal", "legislativoEFcm2024");
+    // O último parâmetro é a referência do gerenciador para permitir enviar os votos a clientes que conectaram tarde!
+    servidor.iniciar("Camara Municipal", "legislativoEFcm2024", &gerenciador);
 }
 
 void loop()

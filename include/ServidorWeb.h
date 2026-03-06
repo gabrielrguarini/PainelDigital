@@ -11,12 +11,14 @@ class ServidorWeb
 private:
     AsyncWebServer server;
     AsyncWebSocket ws;
+    GerenciadorDeVotacoes *_gerenciador;
 
 public:
     ServidorWeb();
 
-    void iniciar(const char *ssid, const char *senha);
+    void iniciar(const char *ssid, const char *senha, GerenciadorDeVotacoes *ger);
 
+    String gerarJsonAtualizacao(GerenciadorDeVotacoes &ger);
     void enviarAtualizacao(GerenciadorDeVotacoes &ger);
 };
 

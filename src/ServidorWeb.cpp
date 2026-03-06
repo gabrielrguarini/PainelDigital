@@ -6,8 +6,9 @@ ServidorWeb::ServidorWeb()
 {
 }
 
-void ServidorWeb::iniciar(const char *ssid, const char *senha)
+void ServidorWeb::iniciar(const char *ssid, const char *senha, GerenciadorDeVotacoes *ger)
 {
+    _gerenciador = ger;
     WiFi.begin(ssid, senha);
 
     Serial.print("Conectando no WiFi");
@@ -22,6 +23,16 @@ void ServidorWeb::iniciar(const char *ssid, const char *senha)
     Serial.print("IP: ");
     Serial.println(WiFi.localIP());
 
+    ws.onEvent([this](AsyncWebSocket *server, AsyncWebSocketClient *client, AwsEventType type, void *arg, uint8_t *data, size_t len) {
+        if (type == WS_EVT_CONNECT) {
+            Serial.printf("Cliente WebSocket conectado\n");
+            if (_gerenciador != nullptr) {
+                String json = gerarJsonAtualizacao(*_gerenciador);
+                client->text(json);
+            }
+        }
+    });
+
     server.addHandler(&ws);
 
     server.begin();
@@ -29,7 +40,7 @@ void ServidorWeb::iniciar(const char *ssid, const char *senha)
     Serial.println("Servidor iniciado");
 }
 
-void ServidorWeb::enviarAtualizacao(GerenciadorDeVotacoes &ger)
+String ServidorWeb::gerarJsonAtualizacao(GerenciadorDeVotacoes &ger)
 {
     // Aumentamos o tamanho de memória do Json para comportar votações longas
     DynamicJsonDocument doc(4096); 
@@ -59,6 +70,11 @@ void ServidorWeb::enviarAtualizacao(GerenciadorDeVotacoes &ger)
 
     String json;
     serializeJson(doc, json);
+    return json;
+}
 
+void ServidorWeb::enviarAtualizacao(GerenciadorDeVotacoes &ger)
+{
+    String json = gerarJsonAtualizacao(ger);
     ws.textAll(json);
 }
