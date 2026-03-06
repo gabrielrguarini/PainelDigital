@@ -220,19 +220,36 @@
     .history-card {
         background: #333;
         border-radius: 8px;
-        padding: 15px;
         margin-bottom: 15px;
+        overflow: hidden;
     }
     .history-card-header {
         display: flex; justify-content: space-between;
-        margin-bottom: 15px; padding-bottom: 10px;
-        border-bottom: 1px solid #444;
+        padding: 15px;
         font-weight: bold;
+        cursor: pointer;
+        user-select: none;
+        transition: background 0.2s;
+    }
+    .history-card-header:hover {
+        background: rgba(255, 255, 255, 0.05);
+    }
+    .history-body {
+        display: none;
+        padding: 0 15px 15px 15px;
+        border-top: 1px solid #444;
+        margin-top: 5px;
     }
     .history-voter-row {
         display: flex; justify-content: space-between;
-        padding: 6px 10px; background: #222; border-radius: 4px; margin-bottom: 5px;
+        padding: 8px 10px; background: #222; border-radius: 4px; margin-bottom: 5px;
         font-size: 13px;
+    }
+    .icon-expand {
+        display: inline-block;
+        font-size: 10px;
+        margin-right: 8px;
+        transition: transform 0.2s;
     }
 </style>
 </head>
@@ -392,15 +409,39 @@
             if (i === indiceAtual) continue;
             
             const p = dados.votacoes[i];
+            
+            let htmlVoters = "";
+            const individuais = p.individuais || [];
+            
+            listaVereadores.forEach(nome => {
+                let votoValue = -1;
+                const regExato = individuais.find(vi => vi.nome.toUpperCase() === nome.toUpperCase());
+                if(regExato) {
+                    votoValue = regExato.voto;
+                }
+                
+                let label = "NÃO VOTOU";
+                let color = "#888";
+                if(votoValue === 1) { label = "SIM"; color = "#00e000"; }
+                else if(votoValue === 0) { label = "NÃO"; color = "#ff3333"; }
+                
+                htmlVoters += '\
+                    <div class="history-voter-row">\
+                        <span>' + nome + '</span>\
+                        <span style="color:' + color + '; font-weight:bold;">' + label + '</span>\
+                    </div>';
+            });
+
             htmlHist += '\
                 <div class="history-card">\
-                    <div class="history-card-header">\
-                        <span>Votação ' + (i + 1) + '</span>\
+                    <div class="history-card-header" onclick="toggleHistory(this)">\
+                        <div><span class="icon-expand">▶</span> Votação ' + (i + 1) + '</div>\
                         <div>\
                             <span style="color:#00e000; margin-right:15px">SIM: ' + p.sim + '</span>\
                             <span style="color:#ff3333">NÃO: ' + p.nao + '</span>\
                         </div>\
                     </div>\
+                    <div class="history-body">' + htmlVoters + '</div>\
                 </div>';
         }
         
@@ -435,6 +476,18 @@
 
     function openModal() { document.getElementById('modal').classList.add('active'); }
     function closeModal() { document.getElementById('modal').classList.remove('active'); }
+
+    function toggleHistory(element) {
+        const body = element.nextElementSibling;
+        const icon = element.querySelector('.icon-expand');
+        if (body.style.display === "block") {
+            body.style.display = "none";
+            icon.style.transform = "rotate(0deg)";
+        } else {
+            body.style.display = "block";
+            icon.style.transform = "rotate(90deg)";
+        }
+    }
 </script>
 
 </body>
