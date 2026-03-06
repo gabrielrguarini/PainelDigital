@@ -4,161 +4,178 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Painel de Votação - Câmara Municipal</title>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700;900&display=swap" rel="stylesheet">
 <style>
-    :root {
-        --bg: #f8fafc;
-        --card-bg: #ffffff;
-        --text-main: #1e293b;
-        --text-muted: #64748b;
-        --sim: #10b981;
-        --sim-light: #d1fae5;
-        --nao: #ef4444;
-        --nao-light: #fee2e2;
-        --pending: #94a3b8;
-        --pending-light: #f1f5f9;
-        --primary: #3b82f6;
+    * { box-sizing: border-box; }
+    body {
+        margin: 0;
+        font-family: 'Roboto', sans-serif;
+        background-color: #1a1a1a;
+        color: white;
+        display: flex;
+        height: 100vh;
+        overflow: hidden;
     }
 
-    body {
-        font-family: 'Inter', sans-serif;
-        background: var(--bg);
-        color: var(--text-main);
-        margin: 0;
-        padding: 0;
+    /* BARRA LATERAL (Esquerda) */
+    .sidebar {
+        width: 320px;
+        background: linear-gradient(180deg, #001B6B 0%, #0044FF 100%);
         display: flex;
         flex-direction: column;
         align-items: center;
-        min-height: 100vh;
-    }
-
-    header {
-        width: 100%;
-        background: var(--card-bg);
-        padding: 20px 0;
+        padding: 40px 20px;
+        box-shadow: 5px 0 15px rgba(0,0,0,0.5);
+        z-index: 10;
         text-align: center;
-        box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
-        margin-bottom: 30px;
+        position: relative;
     }
-
-    h1 {
-        margin: 0;
-        font-size: 1.5rem;
-        font-weight: 700;
+    .sidebar img.logo {
+        width: 160px;
+        margin-bottom: 20px;
+        filter: drop-shadow(0px 4px 6px rgba(0,0,0,0.4));
     }
-
-    .status {
-        font-size: 0.875rem;
-        color: var(--text-muted);
-        margin-top: 5px;
-    }
-
-    .container {
-        width: 100%;
-        max-width: 800px;
-        padding: 0 20px;
-        box-sizing: border-box;
-    }
-
-    .totals {
-        display: flex;
-        gap: 20px;
-        margin-bottom: 30px;
-    }
-
-    .total-card {
-        flex: 1;
-        background: var(--card-bg);
-        border-radius: 16px;
-        padding: 30px;
-        text-align: center;
-        box-shadow: 0 10px 15px -3px rgba(0,0,0,0.05);
-        transition: transform 0.2s;
-    }
-    .total-card:hover {  transform: translateY(-2px); }
-
-    .total-card h2 {
-        margin: 0;
-        font-size: 1.1rem;
-        color: var(--text-muted);
+    .sidebar h1 {
+        font-size: 18px;
         text-transform: uppercase;
+        letter-spacing: 1px;
+        line-height: 1.4;
+        margin-top: 20px;
+        text-shadow: 1px 1px 3px rgba(0,0,0,0.5);
+    }
+
+    .placar {
+        margin-top: auto;
+        margin-bottom: 50px;
+        text-align: center;
+        width: 100%;
+        background: rgba(0,0,0,0.2);
+        padding: 20px;
+        border-radius: 12px;
+    }
+
+    .placar-sim, .placar-nao {
+        font-size: 42px;
+        font-weight: 900;
+        text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+        margin: 10px 0;
+    }
+
+    .placar-sim span { color: #00e000; }
+    .placar-nao span { color: #ff3333; }
+
+    /* PAINEL PRINCIPAL (Direita) */
+    .main-panel {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+        overflow-y: auto;
+        position: relative;
+    }
+
+    .voters-grid {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 20px 15px; /* gap vertical e horizontal */
+        max-width: 1200px;
+        align-content: center;
+    }
+
+    /* CARTÃO DO VEREADOR */
+    .voter-card {
+        width: 190px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        filter: drop-shadow(0px 10px 15px rgba(0,0,0,0.3));
+    }
+
+    .photo-container {
+        width: 100%;
+        height: 220px;
+        background-color: #ffffff;
+        display: flex;
+        justify-content: center;
+        align-items: flex-end;
+        overflow: hidden;
+    }
+
+    .photo-container img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        object-position: top;
+    }
+
+    .vote-bar {
+        width: 100%;
+        height: 40px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 24px;
+        font-weight: 900;
+        text-transform: uppercase;
+        color: white;
+        letter-spacing: 2px;
+        background-color: #444; /* Default/Aguardando */
+    }
+
+    /* STATUS DE COR */
+    .vote-sim { background-color: #00c800; }
+    .vote-nao { background-color: #d00000; }
+    .vote-aguardando { background-color: #444444; color: #888;} 
+
+    .voter-name {
+        margin-top: 8px;
+        font-size: 13px;
+        font-weight: 400;
+        text-transform: uppercase;
+        text-align: center;
         letter-spacing: 1px;
     }
 
-    .total-Number {
-        font-size: 4rem;
-        font-weight: 700;
-        margin-top: 10px;
+    /* WEBSOCKET STATUS */
+    .connection-status {
+        position: absolute;
+        top: 15px;
+        right: 20px;
+        font-size: 12px;
+        color: #666;
     }
 
-    .c-sim { color: var(--sim); }
-    .c-nao { color: var(--nao); }
-
-    .voters-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-        gap: 15px;
-        margin-bottom: 80px;
-    }
-
-    .voter-card {
-        background: var(--card-bg);
-        padding: 15px 20px;
-        border-radius: 12px;
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        box-shadow: 0 4px 6px -1px rgba(0,0,0,0.03);
-        transition: all 0.2s ease;
-    }
-
-    .voter-name {
-        font-weight: 600;
-        font-size: 0.95rem;
-    }
-
-    .badge {
-        padding: 4px 10px;
-        border-radius: 20px;
-        font-size: 0.75rem;
-        font-weight: 700;
-        text-transform: uppercase;
-    }
-
-    .badge.sim { background: var(--sim-light); color: var(--sim); }
-    .badge.nao { background: var(--nao-light); color: var(--nao); }
-    .badge.pendente { background: var(--pending-light); color: var(--pending); }
-
-    /* Button Historico */
+    /* BOTÃO DE HISTÓRICO DISCRETO NA ESQUERDA (DENTRO DA SIDEBAR) */
     .btn-historico {
-        position: fixed;
-        bottom: 25px;
-        left: 25px;
-        background: var(--card-bg);
-        color: var(--text-muted);
-        border: 1px solid #e2e8f0;
-        padding: 10px 15px;
-        border-radius: 8px;
-        font-family: inherit;
-        font-size: 0.85rem;
-        font-weight: 500;
+        position: absolute;
+        bottom: 15px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: rgba(255, 255, 255, 0.1);
+        color: rgba(255, 255, 255, 0.7);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        padding: 6px 15px;
+        border-radius: 20px;
+        font-size: 11px;
         cursor: pointer;
-        box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
         transition: all 0.2s;
-        z-index: 100;
+        text-transform: uppercase;
+        backdrop-filter: blur(5px);
     }
-
     .btn-historico:hover {
-        background: var(--bg);
-        color: var(--text-main);
+        background: rgba(255, 255, 255, 0.3);
+        color: white;
     }
 
-    /* Modal Historico */
+    /* MODAL DE HISTÓRICO */
     .modal-overlay {
         position: fixed;
         top: 0; left: 0; right: 0; bottom: 0;
-        background: rgba(0,0,0,0.4);
-        backdrop-filter: blur(4px);
+        background: rgba(0,0,0,0.8);
+        backdrop-filter: blur(5px);
         display: flex;
         align-items: center;
         justify-content: center;
@@ -174,125 +191,84 @@
     }
 
     .modal-content {
-        background: var(--bg);
+        background: #2a2a2a;
         width: 100%;
-        max-width: 650px;
+        max-width: 600px;
         max-height: 85vh;
-        border-radius: 16px;
+        border-radius: 12px;
         display: flex;
         flex-direction: column;
-        box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1);
-        transform: translateY(20px);
-        transition: transform 0.3s ease;
-        overflow: hidden;
-    }
-
-    .modal-overlay.active .modal-content {
-        transform: translateY(0);
+        box-shadow: 0 20px 40px rgba(0,0,0,0.5);
     }
 
     .modal-header {
-        padding: 20px 25px;
-        background: var(--card-bg);
-        border-bottom: 1px solid #e2e8f0;
+        padding: 20px;
+        border-bottom: 1px solid #444;
         display: flex;
         justify-content: space-between;
         align-items: center;
     }
-
-    .modal-header h2 { margin: 0; font-size: 1.25rem; }
-
-    .btn-close {
-        background: none; border: none; font-size: 1.5rem; color: var(--text-muted); cursor: pointer;
-    }
+    .modal-header h2 { margin: 0; font-size: 18px; }
+    .btn-close { background: none; border: none; font-size: 24px; color: #aaa; cursor: pointer; }
+    .btn-close:hover { color: white; }
 
     .modal-body {
-        padding: 25px;
+        padding: 20px;
         overflow-y: auto;
     }
 
     .history-card {
-        background: var(--card-bg);
-        border-radius: 12px;
+        background: #333;
+        border-radius: 8px;
         padding: 15px;
         margin-bottom: 15px;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.02);
     }
-
     .history-card-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 15px;
-        padding-bottom: 10px;
-        border-bottom: 1px solid #f1f5f9;
-        font-weight: 600;
-        font-size: 1.05rem;
+        display: flex; justify-content: space-between;
+        margin-bottom: 15px; padding-bottom: 10px;
+        border-bottom: 1px solid #444;
+        font-weight: bold;
     }
-    
-    .history-totals {
-        font-size: 0.9rem;
-        display: flex;
-        gap: 15px;
-    }
-    
-    .grid-history-voters {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 8px;
-        font-size: 0.85rem;
-    }
-    
     .history-voter-row {
-        display: flex;
-        justify-content: space-between;
-        padding: 6px 10px;
-        background: #f8fafc;
-        border-radius: 6px;
-    }
-    
-    @media (max-width: 600px) {
-        .totals { flex-direction: column; }
-        .grid-history-voters { grid-template-columns: 1fr; }
+        display: flex; justify-content: space-between;
+        padding: 6px 10px; background: #222; border-radius: 4px; margin-bottom: 5px;
+        font-size: 13px;
     }
 </style>
 </head>
 <body>
 
-<header>
-    <h1>Painel de Votação</h1>
-    <div class="status" id="ws-status">Tentando conexão...</div>
-</header>
-
-<div class="container">
-    <div class="totals">
-        <div class="total-card">
-            <h2>Votos Sim</h2>
-            <div class="total-Number c-sim" id="total-sim">0</div>
-        </div>
-        <div class="total-card">
-            <h2>Votos Não</h2>
-            <div class="total-Number c-nao" id="total-nao">0</div>
-        </div>
+<div class="sidebar">
+    <img class="logo" src="https://upload.wikimedia.org/wikipedia/commons/thumb/1/1a/Bras%C3%A3o_de_Espera_Feliz.png/400px-Bras%C3%A3o_de_Espera_Feliz.png" alt="Brasão">
+    
+    <h1>Câmara Municipal de<br>Espera Feliz-MG</h1>
+    
+    <div class="placar">
+        <div style="font-size: 12px; color:#aaa; margin-bottom: 10px; letter-spacing: 2px;">VOTAÇÃO ATUAL</div>
+        <div class="placar-sim">SIM: <span id="total-sim">0</span></div>
+        <div class="placar-nao">NÃO: <span id="total-nao">0</span></div>
     </div>
 
-    <h3 style="margin-bottom: 15px; color: var(--text-muted);">Status dos Vereadores</h3>
+    <!-- O botão discreto agora fica no rodapé da barra lateral -->
+    <button class="btn-historico" onclick="openModal()">Ver Histórico</button>
+</div>
+
+<div class="main-panel">
+    <div class="connection-status" id="ws-status">Conectando...</div>
+
     <div class="voters-grid" id="voters-grid">
-        <div style="color: var(--text-muted); font-size: 0.9rem;">Aguardando dados...</div>
+        <!-- A grade será injetada por JS -->
     </div>
 </div>
 
-<button class="btn-historico" onclick="openModal()">🕒 Ver Histórico</button>
-
+<!-- MODAL DE HISTÓRICO -->
 <div class="modal-overlay" id="modal">
     <div class="modal-content">
         <div class="modal-header">
             <h2>Votações Anteriores</h2>
             <button class="btn-close" onclick="closeModal()">&times;</button>
         </div>
-        <div class="modal-body" id="history-container">
-            <!-- Historico de sessoes fica aqui -->
-        </div>
+        <div class="modal-body" id="history-container"></div>
     </div>
 </div>
 
@@ -300,11 +276,89 @@
     let socket;
     let fallbackTimer;
 
-    function renderLabelAndClass(votoValue) {
-        if(votoValue === 1) return { label: 'SIM', cssClass: 'sim' };
-        if(votoValue === 0) return { label: 'NÃO', cssClass: 'nao' };
-        return { label: 'AGUARDANDO', cssClass: 'pendente' };
+    // A LISTA DEFINITIVA E FIXA DOS 11 VEREADORES DO PAINEL
+    const listaVereadores = [
+        "LAIR BOIADEIRO",
+        "FILETO",
+        "COCÃO DO ESPORTE",
+        "SERGINHO SILVESTRE",
+        "FERNANDA DO SINDICATO",
+        "ROBINHO LACERDA",
+        "SANDRINHA DONADIO",
+        "PAULINHO DO SALÃO",
+        "JOSÉ AUGUSTO",
+        "MATUSALÉM",
+        "GILMARZINHO"
+    ];
+
+    function imageError(img) {
+        img.onerror = null;
+        img.src = "https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png";
     }
+
+    function renderCard(nome, votoValue) {
+        let label = "---";
+        let colorClass = "vote-aguardando";
+
+        if (votoValue === 1) {
+            label = "SIM";
+            colorClass = "vote-sim";
+        } else if (votoValue === 0) {
+            label = "NÃO";
+            colorClass = "vote-nao";
+        }
+
+        const nomeArquivo = nome.toLowerCase()
+            .normalize("NFD").replace(/[\u0300-\u036f]/g, "") 
+            .replace(/[^a-z0-9]/g, '') + ".png";
+
+        return '\
+            <div class="voter-card">\
+                <div class="photo-container">\
+                    <img src="fotos/' + nomeArquivo + '" onerror="imageError(this)" alt="' + nome + '">\
+                </div>\
+                <div class="vote-bar ' + colorClass + '">' + label + '</div>\
+                <div class="voter-name">' + nome + '</div>\
+            </div>\
+        ';
+    }
+
+    function renderizarGridVotante(individuais) {
+        const grid = document.getElementById("voters-grid");
+        let htmlGrid = "";
+        
+        listaVereadores.forEach(nomeLista => {
+            let votoAtual = -1; // -1 = Não Votou / Aguardando
+            
+            if (Array.isArray(individuais)) {
+                // Compara para saber se há um voto registrado da placa ESP32 (Ignora maiusculas/minusculas)
+                const regExato = individuais.find(vi => vi.nome.toUpperCase() === nomeLista.toUpperCase());
+                if(regExato) {
+                    votoAtual = regExato.voto;
+                }
+            }
+            htmlGrid += renderCard(nomeLista, votoAtual);
+        });
+
+        // Este bloco aqui vai adicionar no grid qualquer vereador de teste que você configurar no ESP32 ("Gabriel" por ex)
+        // se ele não estiver na lista de 11 oficiais, para os testes do Botão
+        if (Array.isArray(individuais)) {
+            individuais.forEach(vi => {
+                const existe = listaVereadores.some(nome => nome.toUpperCase() === vi.nome.toUpperCase());
+                if(!existe) {
+                    htmlGrid += renderCard(vi.nome, vi.voto);
+                }
+            });
+        }
+        
+        grid.innerHTML = htmlGrid;
+    }
+
+    // Renderiza a base dos 11 assim que a página abre, sem dados do ESP32 (Tudo Aguardando)
+    window.onload = () => {
+        renderizarGridVotante([]);
+        conectar();
+    };
 
     function atualizarTela(dados) {
         if(!dados || !dados.votacoes || dados.votacoes.length === 0) return;
@@ -312,96 +366,51 @@
         const indiceAtual = dados.atual;
         const votacaoAtual = dados.votacoes[indiceAtual];
         
-        // Atualiza Placares Gerais
         document.getElementById("total-sim").textContent = votacaoAtual.sim;
         document.getElementById("total-nao").textContent = votacaoAtual.nao;
 
-        // Atualiza a Grid de Votantes da Votacao Atual
-        const grid = document.getElementById("voters-grid");
-        grid.innerHTML = "";
-        
-        let individuais = votacaoAtual.individuais;
-        
-        // Proteção caso não tenha dados individuais no JSON
-        if(Array.isArray(individuais)) {
-            individuais.forEach(vi => {
-                const status = renderLabelAndClass(vi.voto);
-                
-                const card = document.createElement("div");
-                card.className = "voter-card";
-                card.innerHTML = `
-                    <span class="voter-name">${vi.nome}</span>
-                    <span class="badge ${status.cssClass}">${status.label}</span>
-                `;
-                grid.appendChild(card);
-            });
-        }
+        // Atualizar Painel Principal (Grid) com os dados recebidos!
+        renderizarGridVotante(votacaoAtual.individuais);
 
-        // Atualizar Historico
+        // Atualizar Histórico (Modal)
         const histContainer = document.getElementById("history-container");
-        histContainer.innerHTML = "";
+        let htmlHist = "";
         
         for (let i = dados.votacoes.length - 1; i >= 0; i--) {
-            if (i === indiceAtual) continue; // Pula a votação atual que já está rolando no painel principal
+            if (i === indiceAtual) continue;
             
             const p = dados.votacoes[i];
-            const div = document.createElement("div");
-            div.className = "history-card";
-            
-            let htmlInner = `
-                <div class="history-card-header">
-                    <span>Votação ${i + 1}</span>
-                    <div class="history-totals">
-                        <span class="c-sim" style="font-weight:bold;">SIM: ${p.sim}</span>
-                        <span class="c-nao" style="font-weight:bold;">NÃO: ${p.nao}</span>
-                    </div>
-                </div>
-                <div class="grid-history-voters">
-            `;
-
-            const pIndiv = p.individuais || [];
-            pIndiv.forEach(pvi => {
-                const s = renderLabelAndClass(pvi.voto);
-                htmlInner += `
-                    <div class="history-voter-row">
-                        <span style="font-weight: 500;">${pvi.nome}</span>
-                        <span class="c-${s.cssClass}" style="font-weight:700">${s.label}</span>
-                    </div>
-                `;
-            });
-
-            htmlInner += `</div>`;
-            div.innerHTML = htmlInner;
-            histContainer.appendChild(div);
+            htmlHist += '\
+                <div class="history-card">\
+                    <div class="history-card-header">\
+                        <span>Votação ' + (i + 1) + '</span>\
+                        <div>\
+                            <span style="color:#00e000; margin-right:15px">SIM: ' + p.sim + '</span>\
+                            <span style="color:#ff3333">NÃO: ' + p.nao + '</span>\
+                        </div>\
+                    </div>\
+                </div>';
         }
         
-        if (histContainer.innerHTML === "") {
-            histContainer.innerHTML = "<p style='text-align:center; color:#94a3b8;'>Nenhuma votação anterior registrada.</p>";
-        }
+        histContainer.innerHTML = htmlHist || "<p style='text-align:center; color:#555;'>Nenhuma sessão gravada.</p>";
     }
 
     function conectar() {
-        // Reconhece dinamicamente de onde o IP é hospedado (para quando o html estiver dentro do propio ESP32 no futuro)
-        // Mas como fallback, se vc abrir local no pc de duplo clique, tenta usar o ip que vc tinha antes.
         const ip = window.location.hostname ? window.location.hostname : '192.168.0.183';
         const url = 'ws://' + ip + '/ws';
         
         socket = new WebSocket(url);
 
         socket.onopen = () => {
-             document.getElementById("ws-status").textContent = "Online | Sistema Atualizado";
-             document.getElementById("ws-status").style.color = "var(--sim)";
+             document.getElementById("ws-status").textContent = "Sessão Online";
+             document.getElementById("ws-status").style.color = "#00e000";
         };
 
         socket.onclose = () => {
-             document.getElementById("ws-status").textContent = "Conexão perdida. Tentando reconectar...";
-             document.getElementById("ws-status").style.color = "var(--nao)";
+             document.getElementById("ws-status").textContent = "Conexão perdida. Reconectando...";
+             document.getElementById("ws-status").style.color = "#ff3333";
              clearTimeout(fallbackTimer);
              fallbackTimer = setTimeout(conectar, 2000);
-        };
-
-        socket.onerror = (err) => {
-             console.log("WebSocket Erro", err);
         };
 
         socket.onmessage = (e) => {
@@ -412,15 +421,8 @@
         };
     }
 
-    function openModal() {
-        document.getElementById('modal').classList.add('active');
-    }
-
-    function closeModal() {
-        document.getElementById('modal').classList.remove('active');
-    }
-
-    window.addEventListener("load", conectar);
+    function openModal() { document.getElementById('modal').classList.add('active'); }
+    function closeModal() { document.getElementById('modal').classList.remove('active'); }
 </script>
 
 </body>
