@@ -5,6 +5,10 @@ Botao::Botao(int pino)
     _pino = pino;
     _estadoAnterior = HIGH;
     _ultimoTempoDebounce = 0;
+}
+
+void Botao::begin()
+{
     pinMode(_pino, INPUT_PULLUP);
 }
 

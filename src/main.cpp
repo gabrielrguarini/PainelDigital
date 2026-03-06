@@ -21,6 +21,10 @@ void setup()
 {
     Serial.begin(115200);
 
+    botaoSim.begin();
+    botaoNao.begin();
+    botaoNovaVotacao.begin();
+
     servidor.iniciar("Camara Municipal", "legislativoEFcm2024");
 }
 

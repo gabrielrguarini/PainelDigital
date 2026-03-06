@@ -11,6 +11,7 @@
     
         public:
             Botao(int pino);
+            void begin();
             bool atualizar();
     };
 
