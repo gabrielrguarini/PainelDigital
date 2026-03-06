@@ -49,10 +49,12 @@ void loop()
     if (botaoNovaVotacao.atualizar())
     {
         gerenciador.iniciarNovaVotacao();
+        Votacao *votacaoAtual = gerenciador.obterVotacaoAtual();
         
         // Zera o voto de todos os vereadores para a nova rodada
         for (int i = 0; i < NUM_VEREADORES; i++) {
             vereadores[i].vereador.limparVoto();
+            votacaoAtual->registrarVoto(vereadores[i].vereador.obterNome(), NAO_VOTOU);
         }
 
         servidor.enviarAtualizacao(gerenciador);
@@ -67,9 +69,8 @@ void loop()
         // Se o botão SIM deste vereador foi apertado...
         if (vereadores[i].botaoSim.atualizar())
         {
-            TipoVoto votoAnterior = vereadores[i].vereador.obterVoto();
             vereadores[i].vereador.votar(SIM);
-            votacaoAtual->registrarVoto(votoAnterior, SIM);
+            votacaoAtual->registrarVoto(vereadores[i].vereador.obterNome(), SIM);
             servidor.enviarAtualizacao(gerenciador);
             Serial.printf("%s votou SIM\n", vereadores[i].vereador.obterNome());
         }
@@ -77,9 +78,8 @@ void loop()
         // Se o botão NAO deste vereador foi apertado...
         if (vereadores[i].botaoNao.atualizar())
         {
-            TipoVoto votoAnterior = vereadores[i].vereador.obterVoto();
             vereadores[i].vereador.votar(NAO);
-            votacaoAtual->registrarVoto(votoAnterior, NAO);
+            votacaoAtual->registrarVoto(vereadores[i].vereador.obterNome(), NAO);
             servidor.enviarAtualizacao(gerenciador);
             Serial.printf("%s votou NÃO\n", vereadores[i].vereador.obterNome());
         }

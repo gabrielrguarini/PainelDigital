@@ -10,20 +10,31 @@ enum TipoVoto
     SIM = 1
 };
 
+#define MAX_VEREADORES_VOTACAO 20
+
+struct VotoIndividual {
+    char nome[32];
+    TipoVoto voto;
+};
+
 class Votacao
 {
 private:
     int _totalSim;
     int _totalNao;
 
+    VotoIndividual _votos[MAX_VEREADORES_VOTACAO];
+    int _numVotos;
+
 public:
     Votacao();
-    void registrarVoto(TipoVoto votoAnterior, TipoVoto voto);
+    void limparVotos();
+    void registrarVoto(const char *nomeVereador, TipoVoto voto);
     void mostrarResultado();
-    int obterSim();
-    int obterNao();
     int obterTotalSim();
     int obterTotalNao();
+    int obterNumVotos();
+    VotoIndividual obterVoto(int indice);
 };
 
 #endif

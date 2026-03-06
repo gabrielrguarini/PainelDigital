@@ -31,11 +31,12 @@ void ServidorWeb::iniciar(const char *ssid, const char *senha)
 
 void ServidorWeb::enviarAtualizacao(GerenciadorDeVotacoes &ger)
 {
-    JsonDocument doc = StaticJsonDocument<512>();
+    // Aumentamos o tamanho de memória do Json para comportar votações longas
+    DynamicJsonDocument doc(4096); 
 
     doc["atual"] = ger.obterQuantidadeVotacoes() - 1;
 
-    JsonArray votacoes = doc["votacoes"].to<JsonArray>();
+    JsonArray votacoes = doc.createNestedArray("votacoes");
 
     int total = ger.obterQuantidadeVotacoes();
 
@@ -46,6 +47,14 @@ void ServidorWeb::enviarAtualizacao(GerenciadorDeVotacoes &ger)
         JsonObject voto = votacoes.createNestedObject();
         voto["sim"] = v->obterTotalSim();
         voto["nao"] = v->obterTotalNao();
+
+        JsonArray individuais = voto.createNestedArray("individuais");
+        for (int j = 0; j < v->obterNumVotos(); j++) {
+            VotoIndividual vi = v->obterVoto(j);
+            JsonObject vp = individuais.createNestedObject();
+            vp["nome"] = vi.nome;
+            vp["voto"] = vi.voto; // 1 = SIM, 0 = NAO, -1 = NAO_VOTOU
+        }
     }
 
     String json;

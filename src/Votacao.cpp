@@ -1,19 +1,22 @@
 #include "Votacao.h"
+#include <string.h>
 
 Votacao::Votacao()
 {
-    _totalSim = 0;
-    _totalNao = 0;
-}
-int Votacao::obterSim()
-{
-    return _totalSim;
+    limparVotos();
 }
 
-int Votacao::obterNao()
+void Votacao::limparVotos()
 {
-    return _totalNao;
+    _totalSim = 0;
+    _totalNao = 0;
+    _numVotos = 0;
+    for (int i = 0; i < MAX_VEREADORES_VOTACAO; i++) {
+        _votos[i].voto = NAO_VOTOU;
+        _votos[i].nome[0] = '\0';
+    }
 }
+
 int Votacao::obterTotalSim()
 {
     return _totalSim;
@@ -24,44 +27,61 @@ int Votacao::obterTotalNao()
     return _totalNao;
 }
 
-void Votacao::registrarVoto(TipoVoto votoAnterior, TipoVoto votoAtual)
-
+int Votacao::obterNumVotos()
 {
-    if (votoAnterior == votoAtual)
+    return _numVotos;
+}
+
+VotoIndividual Votacao::obterVoto(int indice)
+{
+    return _votos[indice];
+}
+
+void Votacao::registrarVoto(const char *nomeVereador, TipoVoto votoAtual)
+{
+    // Procura o vereador na lista de votos já existentes
+    for (int i = 0; i < _numVotos; i++)
     {
-        return;
+        if (strcmp(_votos[i].nome, nomeVereador) == 0)
+        {
+            TipoVoto votoAnterior = _votos[i].voto;
+            if (votoAnterior == votoAtual) {
+                return; // Não alterou
+            }
+
+            // Remove o voto antigo das parciais
+            if (votoAnterior == SIM) _totalSim--;
+            else if (votoAnterior == NAO) _totalNao--;
+
+            // Adiciona o voto novo
+            _votos[i].voto = votoAtual;
+            if (votoAtual == SIM) _totalSim++;
+            else if (votoAtual == NAO) _totalNao++;
+            
+            mostrarResultado();
+            return;
+        }
     }
 
-    if (votoAnterior == SIM)
+    // Se o vereador ainda não estava na lista e há espaço
+    if (_numVotos < MAX_VEREADORES_VOTACAO)
     {
-        _totalSim--;
-    }
-    else if (votoAnterior == NAO)
-    {
-        _totalNao--;
-    }
+        strncpy(_votos[_numVotos].nome, nomeVereador, sizeof(_votos[_numVotos].nome) - 1);
+        _votos[_numVotos].nome[sizeof(_votos[_numVotos].nome) - 1] = '\0';
+        _votos[_numVotos].voto = votoAtual;
+        _numVotos++;
 
-    if (votoAtual == SIM)
-    {
-        _totalSim++;
+        if (votoAtual == SIM) _totalSim++;
+        else if (votoAtual == NAO) _totalNao++;
+        
+        mostrarResultado();
     }
-    else if (votoAtual == NAO)
-    {
-        _totalNao++;
-    }
-
-    mostrarResultado();
 }
 
 void Votacao::mostrarResultado()
 {
-    Serial.println("----- RESULTADO -----");
-
-    Serial.print("SIM: ");
-    Serial.println(_totalSim);
-
-    Serial.print("NAO: ");
-    Serial.println(_totalNao);
-
-    Serial.println("---------------------");
+    Serial.println("----- PARCIAL -----");
+    Serial.print("SIM: ");  Serial.println(_totalSim);
+    Serial.print("NAO: "); Serial.println(_totalNao);
+    Serial.println("-------------------");
 }
