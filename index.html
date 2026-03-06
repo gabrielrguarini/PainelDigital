@@ -261,7 +261,7 @@
     <h1>Câmara Municipal de<br>Espera Feliz-MG</h1>
     
     <div class="placar">
-        <div style="font-size: 12px; color:#aaa; margin-bottom: 10px; letter-spacing: 2px;">VOTAÇÃO ATUAL</div>
+        <div id="votacao-titulo" style="font-size: 12px; color:#aaa; margin-bottom: 10px; letter-spacing: 2px;">VOTAÇÃO ATUAL</div>
         <div class="placar-sim">SIM: <span id="total-sim">0</span></div>
         <div class="placar-nao">NÃO: <span id="total-nao">0</span></div>
     </div>
@@ -395,6 +395,8 @@
         const indiceAtual = dados.atual;
         const votacaoAtual = dados.votacoes[indiceAtual];
         
+        // Atualiza Placares Gerais
+        document.getElementById("votacao-titulo").textContent = "VOTAÇÃO ATUAL";
         document.getElementById("total-sim").textContent = votacaoAtual.sim;
         document.getElementById("total-nao").textContent = votacaoAtual.nao;
 
@@ -405,7 +407,7 @@
         const histContainer = document.getElementById("history-container");
         let htmlHist = "";
         
-        for (let i = dados.votacoes.length - 1; i >= 0; i--) {
+        for (let i = 0; i < dados.votacoes.length; i++) {
             if (i === indiceAtual) continue;
             
             const p = dados.votacoes[i];

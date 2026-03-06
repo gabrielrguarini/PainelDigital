@@ -35,9 +35,6 @@ void setup()
 
     botaoNovaVotacao.begin();
 
-    // Cria a Votação Inicial #1 assim que o painel liga, para a tela não começar travada e sem dados
-    gerenciador.iniciarNovaVotacao();
-
     // Inicializa todos os botões SIM e NÃO automaticamente e pré-popula a placa
     Votacao *votacaoAtual = gerenciador.obterVotacaoAtual();
 
