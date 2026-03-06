@@ -239,7 +239,7 @@
 <body>
 
 <div class="sidebar">
-    <img class="logo" src="https://upload.wikimedia.org/wikipedia/commons/thumb/1/1a/Bras%C3%A3o_de_Espera_Feliz.png/400px-Bras%C3%A3o_de_Espera_Feliz.png" alt="Brasão">
+    <img class="logo" src="imagens/Brasão Original.png" alt="Brasão">
     
     <h1>Câmara Municipal de<br>Espera Feliz-MG</h1>
     
@@ -291,6 +291,20 @@
         "GILMARZINHO"
     ];
 
+    const mapaFotos = {
+        "LAIR BOIADEIRO": "Lair.png",
+        "FILETO": "Fileto.png",
+        "COCÃO DO ESPORTE": "Cocão.png",
+        "SERGINHO SILVESTRE": "Serginho.png",
+        "FERNANDA DO SINDICATO": "Fernanda.png",
+        "ROBINHO LACERDA": "Robinho.png",
+        "SANDRINHA DONADIO": "Sandrinha.png",
+        "PAULINHO DO SALÃO": "Paulinho.png",
+        "JOSÉ AUGUSTO": "Jose.png",
+        "MATUSALÉM": "Matusalem.png",
+        "GILMARZINHO": "Gilmarzinho.png"
+    };
+
     function imageError(img) {
         img.onerror = null;
         img.src = "https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png";
@@ -308,14 +322,12 @@
             colorClass = "vote-nao";
         }
 
-        const nomeArquivo = nome.toLowerCase()
-            .normalize("NFD").replace(/[\u0300-\u036f]/g, "") 
-            .replace(/[^a-z0-9]/g, '') + ".png";
+        const nomeArquivo = mapaFotos[nome] || "sem_foto.png";
 
         return '\
             <div class="voter-card">\
                 <div class="photo-container">\
-                    <img src="fotos/' + nomeArquivo + '" onerror="imageError(this)" alt="' + nome + '">\
+                    <img src="imagens/' + nomeArquivo + '" onerror="imageError(this)" alt="' + nome + '">\
                 </div>\
                 <div class="vote-bar ' + colorClass + '">' + label + '</div>\
                 <div class="voter-name">' + nome + '</div>\
