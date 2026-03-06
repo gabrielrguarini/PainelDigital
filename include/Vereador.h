@@ -7,15 +7,15 @@
 class Vereador
 {
 private:
-    const char *_nome;
+    int _id;
     TipoVoto _voto;
 
 public:
-    Vereador(const char *_nome);
+    Vereador(int id);
     void votar(TipoVoto voto);
     void limparVoto();
     TipoVoto obterVoto();
-    const char *obterNome();
+    int obterId();
 };
 
 #endif

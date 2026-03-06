@@ -13,7 +13,7 @@ enum TipoVoto
 #define MAX_VEREADORES_VOTACAO 20
 
 struct VotoIndividual {
-    char nome[32];
+    int id;
     TipoVoto voto;
 };
 
@@ -29,7 +29,7 @@ private:
 public:
     Votacao();
     void limparVotos();
-    void registrarVoto(const char *nomeVereador, TipoVoto voto);
+    void registrarVoto(int idVereador, TipoVoto voto);
     void mostrarResultado();
     int obterTotalSim();
     int obterTotalNao();

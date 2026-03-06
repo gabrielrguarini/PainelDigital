@@ -13,7 +13,7 @@ void Votacao::limparVotos()
     _numVotos = 0;
     for (int i = 0; i < MAX_VEREADORES_VOTACAO; i++) {
         _votos[i].voto = NAO_VOTOU;
-        _votos[i].nome[0] = '\0';
+        _votos[i].id = -1;
     }
 }
 
@@ -37,12 +37,12 @@ VotoIndividual Votacao::obterVoto(int indice)
     return _votos[indice];
 }
 
-void Votacao::registrarVoto(const char *nomeVereador, TipoVoto votoAtual)
+void Votacao::registrarVoto(int idVereador, TipoVoto votoAtual)
 {
     // Procura o vereador na lista de votos já existentes
     for (int i = 0; i < _numVotos; i++)
     {
-        if (strcmp(_votos[i].nome, nomeVereador) == 0)
+        if (_votos[i].id == idVereador)
         {
             TipoVoto votoAnterior = _votos[i].voto;
             if (votoAnterior == votoAtual) {
@@ -66,8 +66,7 @@ void Votacao::registrarVoto(const char *nomeVereador, TipoVoto votoAtual)
     // Se o vereador ainda não estava na lista e há espaço
     if (_numVotos < MAX_VEREADORES_VOTACAO)
     {
-        strncpy(_votos[_numVotos].nome, nomeVereador, sizeof(_votos[_numVotos].nome) - 1);
-        _votos[_numVotos].nome[sizeof(_votos[_numVotos].nome) - 1] = '\0';
+        _votos[_numVotos].id = idVereador;
         _votos[_numVotos].voto = votoAtual;
         _numVotos++;
 

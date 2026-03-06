@@ -1,8 +1,8 @@
 #include "Vereador.h"
 
-Vereador::Vereador(const char *nome)
+Vereador::Vereador(int id)
 {
-    _nome = nome;
+    _id = id;
     _voto = NAO_VOTOU;
 };
 
@@ -21,7 +21,7 @@ TipoVoto Vereador::obterVoto()
     return _voto;
 };
 
-const char *Vereador::obterNome()
+int Vereador::obterId()
 {
-    return _nome;
+    return _id;
 };

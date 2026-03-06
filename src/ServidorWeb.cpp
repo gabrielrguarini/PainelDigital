@@ -63,7 +63,7 @@ String ServidorWeb::gerarJsonAtualizacao(GerenciadorDeVotacoes &ger)
         for (int j = 0; j < v->obterNumVotos(); j++) {
             VotoIndividual vi = v->obterVoto(j);
             JsonObject vp = individuais.createNestedObject();
-            vp["nome"] = vi.nome;
+            vp["id"] = vi.id; // Envia o ID numérico ao invés da string
             vp["voto"] = vi.voto; // 1 = SIM, 0 = NAO, -1 = NAO_VOTOU
         }
     }

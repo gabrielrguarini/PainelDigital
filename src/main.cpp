@@ -11,14 +11,12 @@ struct ConfigVereador {
     Botao botaoNao;
 };
 
-// Crie a lista de vereadores aqui com os nomes e os respectivos pinos dos botões SIM e NÃO.
-// CUIDADO: O ESP32 possui poucos pinos totalmente seguros para botões com INPUT_PULLUP.
-// Para 11 vereadores (22 botões), você precisará de expansores (ex: 74HC165, PCF8574),
-// ou utilizar pinos como 34, 35, 36 e 39 (que OBRIGATORIAMENTE exigem resistores de pull-up físicos externos de 10k).
+// Crie a lista de pinos de botões dos vereadores correspondente as posições na lista do index.html.
+// Vereador 0, Vereador 1, Vereador 2... até onde precisar!
 ConfigVereador vereadores[] = {
     // Altere este nome caso você queira testar a mesa com outro!
-    {Vereador("LAIR BOIADEIRO"), Botao(33), Botao(32)}
-    // Quando for utilizar os expansores I2C, você poderá adicionar os outros aqui novamente!
+    {Vereador(0), Botao(33), Botao(32)}
+    // Exemplo para futuras portas: {Vereador(1), Botao(34), Botao(35)}, {Vereador(2), ...
 };
 
 // O compilador calcula automaticamente a quantidade de vereadores baseada no array acima
@@ -41,7 +39,7 @@ void setup()
     for (int i = 0; i < NUM_VEREADORES; i++) {
         vereadores[i].botaoSim.begin();
         vereadores[i].botaoNao.begin();
-        votacaoAtual->registrarVoto(vereadores[i].vereador.obterNome(), NAO_VOTOU);
+        votacaoAtual->registrarVoto(vereadores[i].vereador.obterId(), NAO_VOTOU);
     }
 
     // O último parâmetro é a referência do gerenciador para permitir enviar os votos a clientes que conectaram tarde!
@@ -59,7 +57,7 @@ void loop()
         // Zera o voto de todos os vereadores para a nova rodada
         for (int i = 0; i < NUM_VEREADORES; i++) {
             vereadores[i].vereador.limparVoto();
-            votacaoAtual->registrarVoto(vereadores[i].vereador.obterNome(), NAO_VOTOU);
+            votacaoAtual->registrarVoto(vereadores[i].vereador.obterId(), NAO_VOTOU);
         }
 
         servidor.enviarAtualizacao(gerenciador);
@@ -75,18 +73,18 @@ void loop()
         if (vereadores[i].botaoSim.atualizar())
         {
             vereadores[i].vereador.votar(SIM);
-            votacaoAtual->registrarVoto(vereadores[i].vereador.obterNome(), SIM);
+            votacaoAtual->registrarVoto(vereadores[i].vereador.obterId(), SIM);
             servidor.enviarAtualizacao(gerenciador);
-            Serial.printf("%s votou SIM\n", vereadores[i].vereador.obterNome());
+            Serial.printf("Vereador %d votou SIM\n", vereadores[i].vereador.obterId());
         }
 
         // Se o botão NAO deste vereador foi apertado...
         if (vereadores[i].botaoNao.atualizar())
         {
             vereadores[i].vereador.votar(NAO);
-            votacaoAtual->registrarVoto(vereadores[i].vereador.obterNome(), NAO);
+            votacaoAtual->registrarVoto(vereadores[i].vereador.obterId(), NAO);
             servidor.enviarAtualizacao(gerenciador);
-            Serial.printf("%s votou NÃO\n", vereadores[i].vereador.obterNome());
+            Serial.printf("Vereador %d votou NÃO\n", vereadores[i].vereador.obterId());
         }
     }
 }

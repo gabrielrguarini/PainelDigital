@@ -356,29 +356,18 @@
         const grid = document.getElementById("voters-grid");
         let htmlGrid = "";
         
-        listaVereadores.forEach(nomeLista => {
+        listaVereadores.forEach((nomeLista, idIndex) => {
             let votoAtual = -1; // -1 = Não Votou / Aguardando
             
             if (Array.isArray(individuais)) {
-                // Compara para saber se há um voto registrado da placa ESP32 (Ignora maiusculas/minusculas)
-                const regExato = individuais.find(vi => vi.nome.toUpperCase() === nomeLista.toUpperCase());
+                // O ESP32 agora envia apenas o ID numérico correspondente a posição deste array
+                const regExato = individuais.find(vi => vi.id === idIndex);
                 if(regExato) {
                     votoAtual = regExato.voto;
                 }
             }
             htmlGrid += renderCard(nomeLista, votoAtual);
         });
-
-        // Este bloco aqui vai adicionar no grid qualquer vereador de teste que você configurar no ESP32 ("Gabriel" por ex)
-        // se ele não estiver na lista de 11 oficiais, para os testes do Botão
-        if (Array.isArray(individuais)) {
-            individuais.forEach(vi => {
-                const existe = listaVereadores.some(nome => nome.toUpperCase() === vi.nome.toUpperCase());
-                if(!existe) {
-                    htmlGrid += renderCard(vi.nome, vi.voto);
-                }
-            });
-        }
         
         grid.innerHTML = htmlGrid;
     }
@@ -415,9 +404,9 @@
             let htmlVoters = "";
             const individuais = p.individuais || [];
             
-            listaVereadores.forEach(nome => {
+            listaVereadores.forEach((nome, idIndex) => {
                 let votoValue = -1;
-                const regExato = individuais.find(vi => vi.nome.toUpperCase() === nome.toUpperCase());
+                const regExato = individuais.find(vi => vi.id === idIndex);
                 if(regExato) {
                     votoValue = regExato.voto;
                 }
