@@ -2,33 +2,22 @@
 
 GerenciadorDeVotacoes::GerenciadorDeVotacoes()
 {
-    _indiceAtual = 0;
+    _idVotacao = 1;
 }
 
 Votacao *GerenciadorDeVotacoes::obterVotacaoAtual()
 {
-    return &_historico[_indiceAtual];
+    return &_votacaoAtual;
 }
 
 void GerenciadorDeVotacoes::iniciarNovaVotacao()
 {
-    if (_indiceAtual < MAX_VOTACOES - 1)
-    {
-        _indiceAtual++;
-    }
+    // Limpa a instância existente em vez de criar uma nova num array
+    _votacaoAtual.limparVotos();
+    _idVotacao++;
 }
 
-int GerenciadorDeVotacoes::obterQuantidadeVotacoes()
+int GerenciadorDeVotacoes::obterIdVotacaoAtual()
 {
-    return _indiceAtual + 1;
-}
-
-Votacao *GerenciadorDeVotacoes::obterVotacao(int indice)
-{
-    if (indice <= _indiceAtual)
-    {
-        return &_historico[indice];
-    }
-
-    return nullptr;
+    return _idVotacao;
 }

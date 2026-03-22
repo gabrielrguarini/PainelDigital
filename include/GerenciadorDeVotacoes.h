@@ -4,13 +4,11 @@
 #include <Arduino.h>
 #include "Votacao.h"
 
-#define MAX_VOTACOES 20
-
 class GerenciadorDeVotacoes
 {
 private:
-    Votacao _historico[MAX_VOTACOES];
-    int _indiceAtual;
+    Votacao _votacaoAtual;
+    int _idVotacao; // Identificador sequencial da votação para referência
 
 public:
     GerenciadorDeVotacoes();
@@ -19,9 +17,7 @@ public:
 
     void iniciarNovaVotacao();
 
-    int obterQuantidadeVotacoes();
-
-    Votacao *obterVotacao(int indice);
+    int obterIdVotacaoAtual();
 };
 
 #endif

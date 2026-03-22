@@ -123,6 +123,7 @@
         color: white;
         letter-spacing: 2px;
         background-color: #444; /* Default/Aguardando */
+        transition: background-color 0.2s ease;
     }
 
     /* STATUS DE COR */
@@ -139,13 +140,31 @@
         letter-spacing: 1px;
     }
 
-    /* WEBSOCKET STATUS */
-    .connection-status {
+    /* WEBSOCKET STATUS e PING LED */
+    .top-right-status {
         position: absolute;
         top: 15px;
         right: 20px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .connection-status {
         font-size: 12px;
         color: #666;
+    }
+    
+    .ping-led {
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        background-color: #444;
+        transition: background-color 0.1s;
+    }
+    .ping-led.active {
+        background-color: #00e000;
+        box-shadow: 0 0 8px #00e000;
     }
 
     /* BOTÃO DE HISTÓRICO DISCRETO NA ESQUERDA (DENTRO DA SIDEBAR) */
@@ -271,7 +290,11 @@
 </div>
 
 <div class="main-panel">
-    <div class="connection-status" id="ws-status">Conectando...</div>
+    
+    <div class="top-right-status">
+        <div class="connection-status" id="ws-status">Conectando...</div>
+        <div class="ping-led" id="ping-led" title="Heartbeat Ativo"></div>
+    </div>
 
     <div class="voters-grid" id="voters-grid">
         <!-- A grade será injetada por JS -->
@@ -292,6 +315,21 @@
 <script>
     let socket;
     let fallbackTimer;
+
+    // ============================================================
+    // ESTADO LOCAL — O FRONTEND CONSTRÓI E MANTÉM O HISTÓRICO
+    // ============================================================
+
+    // Votação atual: array de votos indexado por ID do vereador
+    // Valor: 1 = SIM, 0 = NÃO, -1 = NAO_VOTOU
+    let votacaoAtual = {};
+    let totalSimAtual = 0;
+    let totalNaoAtual = 0;
+    let idVotacaoAtual = 1;
+
+    // Histórico: array de votações finalizadas no frontend apenas
+    // Cada entrada: { idVotacao: N, sim: N, nao: N, individuais: { id: voto, ... } }
+    let historico = [];
 
     // A LISTA DEFINITIVA E FIXA DOS 11 VEREADORES DO PAINEL
     const listaVereadores = [
@@ -327,94 +365,192 @@
         img.src = "https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png";
     }
 
-    function renderCard(nome, votoValue) {
-        let label = "---";
-        let colorClass = "vote-aguardando";
-
-        if (votoValue === 1) {
-            label = "SIM";
-            colorClass = "vote-sim";
-        } else if (votoValue === 0) {
-            label = "NÃO";
-            colorClass = "vote-nao";
-        }
-
-        const nomeArquivo = mapaFotos[nome] || "sem_foto.png";
-
-        return '\
-            <div class="voter-card">\
-                <div class="photo-container">\
-                    <img src="imagens/' + nomeArquivo + '" onerror="imageError(this)" alt="' + nome + '">\
-                </div>\
-                <div class="vote-bar ' + colorClass + '">' + label + '</div>\
-                <div class="voter-name">' + nome + '</div>\
-            </div>\
-        ';
-    }
-
-    function renderizarGridVotante(individuais) {
+    // ============================================================
+    // RENDERIZAÇÃO INICIAL DO GRID (cria os cards uma única vez)
+    // ============================================================
+    function criarGrid() {
         const grid = document.getElementById("voters-grid");
-        let htmlGrid = "";
+        let html = "";
         
-        listaVereadores.forEach((nomeLista, idIndex) => {
-            let votoAtual = -1; // -1 = Não Votou / Aguardando
-            
-            if (Array.isArray(individuais)) {
-                // O ESP32 agora envia apenas o ID numérico correspondente a posição deste array
-                const regExato = individuais.find(vi => vi.id === idIndex);
-                if(regExato) {
-                    votoAtual = regExato.voto;
-                }
-            }
-            htmlGrid += renderCard(nomeLista, votoAtual);
+        listaVereadores.forEach((nome, idx) => {
+            const nomeArquivo = mapaFotos[nome] || "sem_foto.png";
+            html += '\
+                <div class="voter-card" id="card-' + idx + '">\
+                    <div class="photo-container">\
+                        <img src="imagens/' + nomeArquivo + '" onerror="imageError(this)" alt="' + nome + '">\
+                    </div>\
+                    <div class="vote-bar vote-aguardando" id="vote-bar-' + idx + '">---</div>\
+                    <div class="voter-name">' + nome + '</div>\
+                </div>\
+            ';
         });
         
-        grid.innerHTML = htmlGrid;
+        grid.innerHTML = html;
     }
 
-    // Renderiza a base dos 11 assim que a página abre, sem dados do ESP32 (Tudo Aguardando)
-    window.onload = () => {
-        renderizarGridVotante([]);
-        conectar();
-    };
+    // ============================================================
+    // ATUALIZAÇÃO CIRÚRGICA — MUDA APENAS O CARD QUE PRECISA
+    // ============================================================
+    function atualizarCard(idVereador, votoValue) {
+        const bar = document.getElementById("vote-bar-" + idVereador);
+        if (!bar) return;
 
-    function atualizarTela(dados) {
-        if(!dados || !dados.votacoes || dados.votacoes.length === 0) return;
+        // Remove classes anteriores
+        bar.classList.remove("vote-sim", "vote-nao", "vote-aguardando");
 
-        const indiceAtual = dados.atual;
-        const votacaoAtual = dados.votacoes[indiceAtual];
+        if (votoValue === 1) {
+            bar.textContent = "SIM";
+            bar.classList.add("vote-sim");
+        } else if (votoValue === 0) {
+            bar.textContent = "NÃO";
+            bar.classList.add("vote-nao");
+        } else {
+            bar.textContent = "---";
+            bar.classList.add("vote-aguardando");
+        }
+    }
+
+    function atualizarPlacar() {
+        document.getElementById("total-sim").textContent = totalSimAtual;
+        document.getElementById("total-nao").textContent = totalNaoAtual;
+    }
+
+    function resetarVotacaoAtual() {
+        votacaoAtual = {};
+        totalSimAtual = 0;
+        totalNaoAtual = 0;
+
+        listaVereadores.forEach((_, idx) => {
+            votacaoAtual[idx] = -1;
+            atualizarCard(idx, -1);
+        });
+
+        atualizarPlacar();
+    }
+
+    // ============================================================
+    // PROCESSAMENTO DE MENSAGENS POR TIPO (DELTA JSON)
+    // ============================================================
+    function processarMensagem(data) {
+        switch (data.t) {
+            case "v": // Voto individual delta
+                processarVoto(data.id, data.voto);
+                break;
+
+            case "n": // Nova votação
+                processarNovaVotacao(data.id);
+                break;
+
+            case "e": // Estado completo da VOTAÇÃO ATUAL (reconexão inicial)
+                processarEstadoCompleto(data);
+                break;
+
+            case "p": // Ping (Heartbeat)
+                piscarLed();
+                break;
+        }
+    }
+
+    let pikaTimer;
+    function piscarLed() {
+        const led = document.getElementById("ping-led");
+        led.classList.add("active");
         
-        // Atualiza Placares Gerais
-        document.getElementById("votacao-titulo").textContent = "VOTAÇÃO ATUAL";
-        document.getElementById("total-sim").textContent = votacaoAtual.sim;
-        document.getElementById("total-nao").textContent = votacaoAtual.nao;
+        clearTimeout(pikaTimer);
+        pikaTimer = setTimeout(() => {
+            led.classList.remove("active");
+        }, 150); // Pisca rapidao para o batimento
+    }
 
-        // Atualizar Painel Principal (Grid) com os dados recebidos!
-        renderizarGridVotante(votacaoAtual.individuais);
+    function processarVoto(idVereador, voto) {
+        const votoAnterior = votacaoAtual[idVereador];
 
-        // Atualizar Histórico (Modal)
+        // Remove contagem anterior
+        if (votoAnterior === 1) totalSimAtual--;
+        else if (votoAnterior === 0) totalNaoAtual--;
+
+        // Adiciona contagem nova
+        if (voto === 1) totalSimAtual++;
+        else if (voto === 0) totalNaoAtual++;
+
+        votacaoAtual[idVereador] = voto;
+
+        // Atualiza apenas o card afetado (cirúrgico!)
+        atualizarCard(idVereador, voto);
+        atualizarPlacar();
+    }
+
+    function processarNovaVotacao(novoId) {
+        // Arquiva a votação atual no histórico local do frontend apenas se teve algum voto!
+        // (Isso previne ploluiçaõ em caso de cliques duplos em recomeçar la na mesa)
+        if(totalSimAtual > 0 || totalNaoAtual > 0) {
+           historico.push({
+               idVotacao: idVotacaoAtual,
+               sim: totalSimAtual,
+               nao: totalNaoAtual,
+               individuais: Object.assign({}, votacaoAtual)
+           });
+        }
+
+        idVotacaoAtual = novoId || (idVotacaoAtual + 1);
+
+        // Reseta para nova votação
+        resetarVotacaoAtual();
+
+        // Atualiza modal de histórico caso esteja aberto
+        renderizarHistorico();
+    }
+
+    function processarEstadoCompleto(data) {
+        // Inicializa todos como não votou
+        listaVereadores.forEach((_, idx) => {
+            votacaoAtual[idx] = -1;
+        });
+        
+        idVotacaoAtual = data.idVotacao;
+        totalSimAtual = data.sim;
+        totalNaoAtual = data.nao;
+
+        // Preenche com os votos parciais até agora recebidos neste momento
+        if (Array.isArray(data.individuais)) {
+            data.individuais.forEach(vi => {
+                votacaoAtual[vi.id] = vi.voto;
+            });
+        }
+        
+        // Atualiza todos os cards
+        listaVereadores.forEach((_, idx) => {
+            atualizarCard(idx, votacaoAtual[idx]);
+        });
+        
+        atualizarPlacar();
+    }
+
+    // ============================================================
+    // HISTÓRICO (MODAL) — Construído e mantido pelo FRONTEND!
+    // ============================================================
+    function renderizarHistorico() {
         const histContainer = document.getElementById("history-container");
+        
+        if (historico.length === 0) {
+            histContainer.innerHTML = "<p style='text-align:center; color:#555;'>Nenhuma sessão finalizada gravada.</p>";
+            return;
+        }
+
         let htmlHist = "";
         
-        for (let i = 0; i < dados.votacoes.length; i++) {
-            if (i === indiceAtual) continue;
-            
-            const p = dados.votacoes[i];
+        for (let i = 0; i < historico.length; i++) {
+            const p = historico[i];
             
             let htmlVoters = "";
-            const individuais = p.individuais || [];
             
             listaVereadores.forEach((nome, idIndex) => {
-                let votoValue = -1;
-                const regExato = individuais.find(vi => vi.id === idIndex);
-                if(regExato) {
-                    votoValue = regExato.voto;
-                }
+                const votoValue = p.individuais[idIndex] !== undefined ? p.individuais[idIndex] : -1;
                 
                 let label = "NÃO VOTOU";
                 let color = "#888";
-                if(votoValue === 1) { label = "SIM"; color = "#00e000"; }
-                else if(votoValue === 0) { label = "NÃO"; color = "#ff3333"; }
+                if (votoValue === 1) { label = "SIM"; color = "#00e000"; }
+                else if (votoValue === 0) { label = "NÃO"; color = "#ff3333"; }
                 
                 htmlVoters += '\
                     <div class="history-voter-row">\
@@ -426,7 +562,7 @@
             htmlHist += '\
                 <div class="history-card">\
                     <div class="history-card-header" onclick="toggleHistory(this)">\
-                        <div><span class="icon-expand">▶</span> Votação ' + (i + 1) + '</div>\
+                        <div><span class="icon-expand">▶</span> Votação ' + p.idVotacao + '</div>\
                         <div>\
                             <span style="color:#00e000; margin-right:15px">SIM: ' + p.sim + '</span>\
                             <span style="color:#ff3333">NÃO: ' + p.nao + '</span>\
@@ -436,8 +572,17 @@
                 </div>';
         }
         
-        histContainer.innerHTML = htmlHist || "<p style='text-align:center; color:#555;'>Nenhuma sessão gravada.</p>";
+        histContainer.innerHTML = htmlHist;
     }
+
+    // ============================================================
+    // INICIALIZAÇÃO E WEBSOCKET
+    // ============================================================
+    window.onload = () => {
+        criarGrid();
+        resetarVotacaoAtual();
+        conectar();
+    };
 
     function conectar() {
         const ip = window.location.hostname ? window.location.hostname : '192.168.0.183';
@@ -448,11 +593,13 @@
         socket.onopen = () => {
              document.getElementById("ws-status").textContent = "Sessão Online";
              document.getElementById("ws-status").style.color = "#00e000";
+             document.getElementById("ping-led").style.display = "block";
         };
 
         socket.onclose = () => {
              document.getElementById("ws-status").textContent = "Conexão perdida. Reconectando...";
              document.getElementById("ws-status").style.color = "#ff3333";
+             document.getElementById("ping-led").style.display = "none";
              clearTimeout(fallbackTimer);
              fallbackTimer = setTimeout(conectar, 2000);
         };
@@ -460,12 +607,15 @@
         socket.onmessage = (e) => {
             try {
                 const data = JSON.parse(e.data);
-                atualizarTela(data);
+                processarMensagem(data);
             } catch(ex) { }
         };
     }
 
-    function openModal() { document.getElementById('modal').classList.add('active'); }
+    function openModal() {
+        renderizarHistorico();
+        document.getElementById('modal').classList.add('active');
+    }
     function closeModal() { document.getElementById('modal').classList.remove('active'); }
 
     function toggleHistory(element) {
