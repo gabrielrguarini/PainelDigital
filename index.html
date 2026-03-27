@@ -373,13 +373,14 @@
         let html = "";
         
         listaVereadores.forEach((nome, idx) => {
+            const idVereador = idx + 1;
             const nomeArquivo = mapaFotos[nome] || "sem_foto.png";
             html += '\
-                <div class="voter-card" id="card-' + idx + '">\
+                <div class="voter-card" id="card-' + idVereador + '">\
                     <div class="photo-container">\
                         <img src="imagens/' + nomeArquivo + '" onerror="imageError(this)" alt="' + nome + '">\
                     </div>\
-                    <div class="vote-bar vote-aguardando" id="vote-bar-' + idx + '">---</div>\
+                    <div class="vote-bar vote-aguardando" id="vote-bar-' + idVereador + '">---</div>\
                     <div class="voter-name">' + nome + '</div>\
                 </div>\
             ';
@@ -421,8 +422,9 @@
         totalNaoAtual = 0;
 
         listaVereadores.forEach((_, idx) => {
-            votacaoAtual[idx] = -1;
-            atualizarCard(idx, -1);
+            const idVereador = idx + 1;
+            votacaoAtual[idVereador] = -1;
+            atualizarCard(idVereador, -1);
         });
 
         atualizarPlacar();
@@ -504,7 +506,8 @@
     function processarEstadoCompleto(data) {
         // Inicializa todos como não votou
         listaVereadores.forEach((_, idx) => {
-            votacaoAtual[idx] = -1;
+            const idVereador = idx + 1;
+            votacaoAtual[idVereador] = -1;
         });
         
         idVotacaoAtual = data.idVotacao;
@@ -520,7 +523,8 @@
         
         // Atualiza todos os cards
         listaVereadores.forEach((_, idx) => {
-            atualizarCard(idx, votacaoAtual[idx]);
+            const idVereador = idx + 1;
+            atualizarCard(idVereador, votacaoAtual[idVereador]);
         });
         
         atualizarPlacar();
@@ -545,7 +549,8 @@
             let htmlVoters = "";
             
             listaVereadores.forEach((nome, idIndex) => {
-                const votoValue = p.individuais[idIndex] !== undefined ? p.individuais[idIndex] : -1;
+                const idVereador = idIndex + 1;
+                const votoValue = p.individuais[idVereador] !== undefined ? p.individuais[idVereador] : -1;
                 
                 let label = "NÃO VOTOU";
                 let color = "#888";

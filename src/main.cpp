@@ -8,9 +8,14 @@
 // ============================================================
 // TIPOS DE EVENTO PARA COMUNICAÇÃO ENTRE CORES
 // ============================================================
-enum TipoEvento { EVT_VOTO, EVT_NOVA_VOTACAO };
+enum TipoEvento
+{
+    EVT_VOTO,
+    EVT_NOVA_VOTACAO
+};
 
-struct Evento {
+struct Evento
+{
     TipoEvento tipo;
     int idVereador;
     TipoVoto voto;
@@ -19,18 +24,19 @@ struct Evento {
 // ============================================================
 // CONFIGURAÇÃO DOS VEREADORES E BOTÕES
 // ============================================================
-struct ConfigVereador {
+struct ConfigVereador
+{
     Vereador vereador;
     Botao botaoSim;
     Botao botaoNao;
 };
 
 // Crie a lista de pinos de botões dos vereadores correspondente as posições na lista do index.html.
-// Vereador 0, Vereador 1, Vereador 2... até onde precisar!
+// Vereador 1, Vereador 2, Vereador 3... até onde precisar!
 ConfigVereador vereadores[] = {
     // Altere este nome caso você queira testar a mesa com outro!
-    {Vereador(0), Botao(33), Botao(32)}
-    // Exemplo para futuras portas: {Vereador(1), Botao(34), Botao(35)}, {Vereador(2), ...
+    {Vereador(1), Botao(33), Botao(32)}
+    // Exemplo para futuras portas: {Vereador(2), Botao(34), Botao(35)}, {Vereador(3), ...
 };
 
 // O compilador calcula automaticamente a quantidade de vereadores baseada no array acima
@@ -50,11 +56,11 @@ QueueHandle_t filaEventos;
 void tarefaWiFi(void *parametro)
 {
     // A chamada com strings hardcoded foi substituída para suportar seu provedor (ajuste aqui depois)
-    servidor.iniciar("Guarini", "1759001996", &gerenciador);
+    servidor.iniciar("Camara Municipal", "legislativoEFcm2024", &gerenciador);
 
     unsigned long ultimaLimpeza = 0;
     const unsigned long INTERVALO_LIMPEZA = 5000; // 5 segundos
-    
+
     unsigned long ultimoPing = 0;
     const unsigned long INTERVALO_PING = 1000; // 1 segundo ping heartbeat para os clientes conectados
 
@@ -71,7 +77,8 @@ void tarefaWiFi(void *parametro)
                 Votacao *votacaoAtual = gerenciador.obterVotacaoAtual();
 
                 // Zera o voto de todos os vereadores para a nova rodada
-                for (int i = 0; i < NUM_VEREADORES; i++) {
+                for (int i = 0; i < NUM_VEREADORES; i++)
+                {
                     votacaoAtual->registrarVoto(vereadores[i].vereador.obterId(), NAO_VOTOU);
                 }
 
@@ -90,7 +97,8 @@ void tarefaWiFi(void *parametro)
         unsigned long agora = millis();
 
         // 1 Segundos Heartbeat de ping
-        if(agora - ultimoPing >= INTERVALO_PING) {
+        if (agora - ultimoPing >= INTERVALO_PING)
+        {
             servidor.enviarPing();
             ultimoPing = agora;
         }
@@ -122,7 +130,8 @@ void setup()
     // Inicializa todos os botões SIM e NÃO e pré-popula a votação
     Votacao *votacaoAtual = gerenciador.obterVotacaoAtual();
 
-    for (int i = 0; i < NUM_VEREADORES; i++) {
+    for (int i = 0; i < NUM_VEREADORES; i++)
+    {
         vereadores[i].botaoSim.begin();
         vereadores[i].botaoNao.begin();
         votacaoAtual->registrarVoto(vereadores[i].vereador.obterId(), NAO_VOTOU);
@@ -131,13 +140,13 @@ void setup()
     // Cria a task do WiFi/WebSocket pinned ao Core 0
     // Stack de 8192 bytes, prioridade 1 (Ideal para a API lib ESPAsync do ws)
     xTaskCreatePinnedToCore(
-        tarefaWiFi,     // Função da task
-        "WiFiTask",     // Nome para debug
-        8192,           // Stack size em bytes
-        NULL,           // Parâmetro (não usado)
-        1,              // Prioridade
-        NULL,           // Handle (não precisamos)
-        0               // Roda obrigatoriamente neste Core 0 (WiFi)
+        tarefaWiFi, // Função da task
+        "WiFiTask", // Nome para debug
+        8192,       // Stack size em bytes
+        NULL,       // Parâmetro (não usado)
+        1,          // Prioridade
+        NULL,       // Handle (não precisamos)
+        0           // Roda obrigatoriamente neste Core 0 (WiFi)
     );
 
     Serial.println("Setup completo - Core 1: Botões, Core 0: WiFi");
@@ -159,13 +168,15 @@ void loop()
         xQueueSend(filaEventos, &evento, 0);
 
         // Limpa estado local dos vereadores no hardware para poderem clicar dinovu
-        for (int i = 0; i < NUM_VEREADORES; i++) {
+        for (int i = 0; i < NUM_VEREADORES; i++)
+        {
             vereadores[i].vereador.limparVoto();
         }
     }
 
     // Verifica botões de cada vereador
-    for (int i = 0; i < NUM_VEREADORES; i++) {
+    for (int i = 0; i < NUM_VEREADORES; i++)
+    {
 
         // Botão SIM
         if (vereadores[i].botaoSim.atualizar())
